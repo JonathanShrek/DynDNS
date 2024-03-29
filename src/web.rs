@@ -1,7 +1,7 @@
 use tokio;
 use dotenv::dotenv;
 use thirtyfour::prelude::*;
-use crate::email::get_confirmation_email;
+use crate::email::email_functions;
 use reqwest::{
   get,
   Error
@@ -64,7 +64,7 @@ async fn web_automation() -> WebDriverResult<()> {
     sleep(Duration::from_secs(5));
 
     // get confirmation code from email
-    let result = get_confirmation_email();
+    let result = email_functions::get_confirmation_email();
 
     match result {
         Ok(Some(code)) => {
