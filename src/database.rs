@@ -1,10 +1,10 @@
 pub mod database_functions {
 
   use rusqlite::{
-      Connection,
-      Result,
-      Error
-    };
+    Connection,
+    Result,
+    Error
+  };
 
   pub fn create_ip_table() {
     // open a connection to the sqlite db or create a new one if it doesn't exist
@@ -19,15 +19,17 @@ pub mod database_functions {
     ).expect("Failed to create the database");
   }
 
-  pub fn insert_or_update(ip: &str) {
+  pub fn insert_or_update(ip: &str) -> Result<(), rusqlite::Error> {
     // open a connection to the sqlite db or create a new one if it doesn't exist
-    let conn = Connection::open("dyndns.db").expect("Failed to open or create a connection with the dyndns.db");
+    let conn = Connection::open("dyndns.db")?;
 
     // insert data into the ip_addresses table
     conn.execute(
       "INSERT OR REPLACE INTO ip_addresses (ip) VALUES (?1)",
       [ip],
-    ).expect("Failed to insert into the table");
+    )?;
+
+    Ok(())
   }
 
   pub fn get_all_ip_addresses() {

@@ -8,9 +8,9 @@ pub mod web_functions {
     Error
   };
   use std::{
-      env, 
-      thread::sleep,
-      time::Duration
+    env, 
+    thread::sleep,
+    time::Duration
   };
 
   #[tokio::main]
@@ -68,30 +68,43 @@ pub mod web_functions {
       let result = email_functions::get_confirmation_email();
 
       match result {
-          Ok(Some(code)) => {
-              let verification_input = driver.query(By::XPath("//*[@id=\"codeInput\"]")).first().await?;
-              verification_input.send_keys(code).await?;
+        Ok(Some(code)) => {
+          let verification_input = driver.query(By::XPath("//*[@id=\"codeInput\"]")).first().await?;
+          verification_input.send_keys(code).await?;
 
-              let verification_submit = driver.query(By::Css("button.gb-btn.gb-btn--primary.gb-btn--block-sm.gb-mb-2[data-ncid=continue]")).first().await?;
-              verification_submit.click().await?;
+          let verification_submit = driver.query(By::Css("button.gb-btn.gb-btn--primary.gb-btn--block-sm.gb-mb-2[data-ncid=continue]")).first().await?;
+          verification_submit.click().await?;
 
-              let manage_button = driver.query(By::Css("a.btn.btn-white.btn-small-uppercase[data-ng-if=\"(actionList[0].DisplayText | lowercase) !='learn more'\"]")).first().await?;
-              manage_button.click().await?;
+          let manage_button = driver.query(By::Css("a.btn.btn-white.btn-small-uppercase[data-ng-if=\"(actionList[0].DisplayText | lowercase) !='learn more'\"]")).first().await?;
+          manage_button.click().await?;
 
-              let dns_tab_button = driver.query(By::Css("a[href=\"/Domains/DomainControlPanel/jonathanshreckengost.com/advancedns\"]")).first().await?;
-              dns_tab_button.click().await?;
-          }
-          Ok(None) => {
-              print!("No confirmation code found in the email.");
-          }
-          Err(error) => {
-              print!("An error occurred: {:?}", error);
-          }
-      }
+          let dns_tab_button = driver.query(By::Css("a[href=\"/Domains/DomainControlPanel/jonathanshreckengost.com/advancedns\"]")).first().await?;
+          dns_tab_button.click().await?;
+          
+          // Find all elements with the class "value".
+          let first_dns_record = driver.query(By::XPath("/html/body/div[1]/div[3]/div/div/div[2]/div[5]/div/div[3]/div[1]/div[2]/div[2]/div[2]/div/table/tbody[2]/tr[1]/td[3]/p")).first().await?;
+          first_dns_record.click().await?;
+          first_dns_record.clear().await?;
+          first_dns_record.send_keys("test").await?;
 
-      // Always explicitly close the browser.
-      driver.quit().await?;
+          // Iterate over the found elements.
+          // for element in elements {
+          //   element.click().await?;
+          //   element.clear().await?;
+          //   element.send_keys("test").await?;
+          // }
+        }
+        Ok(None) => {
+            print!("No confirmation code found in the email.");
+        }
+        Err(error) => {
+            print!("An error occurred: {:?}", error);
+        }
+    }
 
-      Ok(())
+    // Always explicitly close the browser.
+    // driver.quit().await?;
+
+    Ok(())
   }
 }
