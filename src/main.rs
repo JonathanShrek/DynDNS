@@ -3,16 +3,40 @@ mod email;
 mod database;
 
 fn main() {
-    let ip_response = web::get_ip_address();
+    // create table if does not exist
+    database::database_functions::create_ip_table();
+
+    // get the current public ip address
+    let ip_response = web::web_functions::get_ip_address();
     match ip_response {
         Ok(ip_addr) => {
-            // if ip address has changed then run the web automation script to update dns
-            // println!("{}", ip_addr);
+            // insert or update the newest public ip address
+            database::database_functions::insert_or_update(&ip_addr);
 
-            // create table if does not exist
-            database::database_functions::create_ip_table();
-            database::database_functions::insert_ip(&ip_addr);
-            database::database_functions::get_all_ip_addresses();
+            // query ip address in table
+            let previous_ip = database::database_functions::get_latest_ip();
+            match previous_ip {
+                Ok(ip) => {
+                    // if the two ip addresses do not match then run the web automation script to update dns
+                    if ip_addr != ip {
+                        let response = web::web_functions::web_automation();
+                        match response {
+                            Ok(_) => {
+                                println!("Web automation script ran successfully");
+                            }
+                            Err(e) => {
+                                println!("Error: {}", e);
+                            }
+                        }
+                    }
+                    else {
+                        print!("The two IP addresses match: {}", ip);
+                    }
+                }
+                Err(e) => {
+                    println!("Error: {}", e);
+                }
+            }
         }
         Err(e) => {
             eprintln!("An error occurred trying to fetch your IP address {}", e);

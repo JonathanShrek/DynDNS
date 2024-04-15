@@ -10,7 +10,7 @@ dotenv = "0.15.0"
 imap = "2.4.1"
 native-tls = "0.2.11"
 reqwest = "0.12.2"
-rusqlite = "0.31.0"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 scraper = "0.19.0"
 thirtyfour = "0.31.0"
 tokio = "1.36.0"

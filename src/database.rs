@@ -1,5 +1,10 @@
 pub mod database_functions {
-  use rusqlite::Connection;
+
+  use rusqlite::{
+      Connection,
+      Result,
+      Error
+    };
 
   pub fn create_ip_table() {
     // open a connection to the sqlite db or create a new one if it doesn't exist
@@ -14,26 +19,15 @@ pub mod database_functions {
     ).expect("Failed to create the database");
   }
 
-  pub fn insert_ip(ip: &str) {
+  pub fn insert_or_update(ip: &str) {
     // open a connection to the sqlite db or create a new one if it doesn't exist
     let conn = Connection::open("dyndns.db").expect("Failed to open or create a connection with the dyndns.db");
 
     // insert data into the ip_addresses table
     conn.execute(
-      "INSERT INTO ip_addresses (ip) VALUES (?1)",
+      "INSERT OR REPLACE INTO ip_addresses (ip) VALUES (?1)",
       [ip],
     ).expect("Failed to insert into the table");
-  }
-
-  pub fn update_ip(ip: &str, id: i32) {
-    // open a connection to the sqlite db or create a new one if it doesn't exist
-    let conn = Connection::open("dyndns.db").expect("Failed to open or create a connection with the dyndns.db");
-
-    // insert data into the ip_addresses table
-    conn.execute(
-      "UPDATE ip_addresses SET ip = ?1 WHERE id = ?2",
-      [ip, &id.to_string()]
-    ).expect("Failed to update the table");
   }
 
   pub fn get_all_ip_addresses() {
@@ -53,5 +47,35 @@ pub mod database_functions {
       let (id, ip) = ip.expect("Failed to assign iteral ip object into variables");
       println!("ID: {}, IP: {}", id, ip);
     }
+  }
+
+  pub fn get_latest_ip() -> Result<String, Error> {
+    // open a connection to the sqlite db or create a new one if it doesn't exist
+    let conn = Connection::open("dyndns.db")?;
+
+    // Execute a SQL query to select the row with the maximum ID
+    let mut stmt = conn.prepare("SELECT ip FROM ip_addresses ORDER BY id DESC LIMIT 1")?;
+
+    // Execute the query and return the value of the 'ip' column
+    let ip_result: Result<String> = match stmt.query_row([], |row| {
+        row.get(0)
+    }) {
+        Ok(ip) => Ok(ip),
+        Err(e) => Err(e),
+    };
+
+    // Return the result of the query
+    ip_result
+  }
+
+  pub fn drop_table(table: &str) {
+    // open a connection to the sqlite db or create a new one if it doesn't exist
+    let conn = Connection::open("dyndns.db").expect("Failed to open or create a connection with the dyndns.db");
+
+    // Execute the DROP TABLE statement
+    conn.execute(
+        &format!("DROP TABLE IF EXISTS {}", table),
+        [],
+    ).expect("Failed to drop the table");
   }
 }
